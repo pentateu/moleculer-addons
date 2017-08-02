@@ -1,58 +1,86 @@
 ![Moleculer logo](http://moleculer.services/images/banner.png)
 
-[![Build Status](https://travis-ci.org/ice-services/moleculer-addons.svg?branch=master)](https://travis-ci.org/ice-services/moleculer-addons)
-[![Coverage Status](https://coveralls.io/repos/github/ice-services/moleculer-addons/badge.svg?branch=master)](https://coveralls.io/github/ice-services/moleculer-addons?branch=master)
-[![Codacy Badge](https://api.codacy.com/project/badge/Grade/e52ed1ab0d014f16b1ed8e45d244b05c)](https://www.codacy.com/app/mereg-norbert/moleculer-addons?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=ice-services/moleculer-addons&amp;utm_campaign=Badge_Grade)
-[![Code Climate](https://codeclimate.com/github/ice-services/moleculer-addons/badges/gpa.svg)](https://codeclimate.com/github/ice-services/moleculer-addons)
-[![Known Vulnerabilities](https://snyk.io/test/github/ice-services/moleculer-addons/badge.svg)](https://snyk.io/test/github/ice-services/moleculer-addons)
-[![Join the chat at https://gitter.im/ice-services/moleculer](https://badges.gitter.im/ice-services/moleculer.svg)](https://gitter.im/ice-services/moleculer?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
+# moleculer-db-adapter-mongoose [![NPM version](https://img.shields.io/npm/v/moleculer-db-adapter-mongoose.svg)](https://www.npmjs.com/package/moleculer-db-adapter-mongoose)
 
-# Official addons for Moleculer framework
-This is a monorepo, contains multiple services & addons for Moleculer project.
+Mongoose adapter for Moleculer DB service
 
-<!-- AUTO-GENERATED-CONTENT:START (RENDERLIST:folder=packages&title=Generals) -->
-## Generals
-| Name | Version | Description |
-| ---- | ------- | ----------- |
-| [moleculer-db](/packages/moleculer-db#readme) | [![NPM version](https://img.shields.io/npm/v/moleculer-db.svg)](https://www.npmjs.com/package/moleculer-db) | Moleculer service to store entities in database |
-| [moleculer-db-adapter-mongoose](/packages/moleculer-db-adapter-mongoose#readme) | [![NPM version](https://img.shields.io/npm/v/moleculer-db-adapter-mongoose.svg)](https://www.npmjs.com/package/moleculer-db-adapter-mongoose) | Mongoose adapter for Moleculer DB service |
-| [moleculer-elasticsearch](/packages/moleculer-elasticsearch#readme) | [![NPM version](https://img.shields.io/npm/v/moleculer-elasticsearch.svg)](https://www.npmjs.com/package/moleculer-elasticsearch) | Elasticsearch service for Moleculer. |
-| [moleculer-fake](/packages/moleculer-fake#readme) | [![NPM version](https://img.shields.io/npm/v/moleculer-fake.svg)](https://www.npmjs.com/package/moleculer-fake) | Fake data generator by Fakerator |
-| [moleculer-mail](/packages/moleculer-mail#readme) | [![NPM version](https://img.shields.io/npm/v/moleculer-mail.svg)](https://www.npmjs.com/package/moleculer-mail) | Send emails |
-| [moleculer-twilio](/packages/moleculer-twilio#readme) | [![NPM version](https://img.shields.io/npm/v/moleculer-twilio.svg)](https://www.npmjs.com/package/moleculer-twilio) | Send SMS Message with Twilio. |
-<!-- AUTO-GENERATED-CONTENT:END -->
+## Features
 
-# Contribution
+## Install
 
-## Install dependencies
 ```bash
-$ npm run setup
+$ npm install moleculer-db moleculer-db-adapter-mongoose --save
 ```
 
-## Development
-**Run the `simple` example in `moleculer-mail` service with watching**
-```bash
-$ npm run dev moleculer-mail
+## Usage
+
+```js
+"use strict";
+
+const { ServiceBroker } = require("moleculer");
+const DbService = require("moleculer-db");
+const MongooseAdapter = require("moleculer-db-adapter-mongoose");
+const mongoose = require("mongoose");
+
+const broker = new ServiceBroker();
+
+// Create a Mongoose service for `post` entities
+broker.createService({
+    name: "posts",
+    mixins: DbService,
+	adapter: new MongooseAdapter("mongodb://localhost/moleculer-demo"),
+	model: mongoose.model("Post", mongoose.Schema({
+		title: { type: String },
+		content: { type: String },
+		votes: { type: Number, default: 0}
+	}))
+});
+
+
+broker.start()
+// Create a new post
+.then(() => broker.call("posts.create", { entity: {
+	title: "My first post",
+	content: "Lorem ipsum...",
+	votes: 0
+}}))
+
+// Get all posts
+.then(() => broker.call("posts.find").then(console.log));
 ```
 
-**Run the `full` example in `moleculer-fake` service w/o watching**
-```bash
-$ npm run demo moleculer-fake full
+## Options
+The constructor options need to be a `String` or an `Object`.
+
+**Example with connection URI**
+```js
+new MongooseAdapter("mongodb://localhost/moleculer-db")
 ```
 
-## Test
-```bash
+**Example with connection options**
+```js
+new MongooseAdapter({
+	uri: "mongodb://db-server-hostname/my-db",
+	options: {
+		user: process.env.MONGO_USERNAME,
+		pass: process.env.MONGO_PASSWORD
+		server: {
+			socketOptions: {
+				keepAlive: 1
+			}
+		}
+	})
+```
+
+# Test
+```
 $ npm test
 ```
 
-## Create a new addon
-```bash
-$ npm run init moleculer-<modulename>
-```
+In development with watching
 
-## Publish new releases
-```bash
-$ npm run release
+```
+$ npm run ci
 ```
 
 # License
